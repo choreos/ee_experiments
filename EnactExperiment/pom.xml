@@ -32,27 +32,10 @@
     </dependency>
 	<dependency>
         <groupId>org.ow2.choreos</groupId>
-        <artifactId>DeploymentManager</artifactId>
+        <artifactId>EnactmentEngine</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <type>jar</type>
     </dependency>
-	<dependency>
-		<groupId>org.ow2.choreos</groupId>
-		<artifactId>ChoreographyDeployer</artifactId> 
-		<version>0.0.1-SNAPSHOT</version>
-		<type>jar</type>
-		<exclusions>
-			<exclusion>
-				<groupId>org.ow2.choreos</groupId>
-				<artifactId>rehearsal</artifactId>
-			</exclusion>
-		</exclusions>
-	</dependency>
-	<dependency>
-		<groupId>org.ow2.choreos</groupId>
-		<artifactId>DeploymentManager</artifactId> 
-		<version>0.0.1-SNAPSHOT</version>
-	</dependency>
 	<dependency>
 		<groupId>org.apache.cxf</groupId>
 		<artifactId>cxf-bundle</artifactId>
