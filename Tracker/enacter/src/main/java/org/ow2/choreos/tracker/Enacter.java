@@ -4,8 +4,9 @@ import java.net.MalformedURLException;
 import java.util.concurrent.Callable;
 
 import org.ow2.choreos.chors.ChoreographyNotFoundException;
+import org.ow2.choreos.chors.EnactmentEngine;
 import org.ow2.choreos.chors.EnactmentException;
-import org.ow2.choreos.chors.client.ChorDeployerClient;
+import org.ow2.choreos.chors.client.EEClient;
 import org.ow2.choreos.chors.datamodel.Choreography;
 import org.ow2.choreos.chors.datamodel.ChoreographySpec;
 import org.ow2.choreos.invoker.Invoker;
@@ -16,7 +17,7 @@ public class Enacter {
 
     private static transient int chorSizeArg;
     private static transient String warFileArg;
-    private static final String CHOR_DEPLOYER = "http://localhost:9102/choreographydeployer/";
+    private static final String EE_URI = "http://localhost:9102/enactmentengine/";
 
     private transient final int enacterId;
     private transient int chorSize;
@@ -81,7 +82,7 @@ public class Enacter {
 
     private Choreography deployChoreography(final ChoreographySpec chorSpec) throws EnactmentException,
             ChoreographyNotFoundException {
-        final ChorDeployerClient deployer = new ChorDeployerClient(CHOR_DEPLOYER);
+        final EnactmentEngine deployer = new EEClient(EE_URI);
         final String chorId = deployer.createChoreography(chorSpec);
         return deployer.enactChoreography(chorId);
     }
