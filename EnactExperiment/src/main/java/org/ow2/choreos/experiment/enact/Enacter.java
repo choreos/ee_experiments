@@ -14,7 +14,7 @@ import org.ow2.choreos.services.datamodel.Service;
 
 public class Enacter implements Runnable {
 
-    private static final String ENACTMENT_ENGINE_HOST = "http://localhost:9102/enactmentengine";
+    private static final String ENACTMENT_ENGINE_HOST = "http://localhost:9100/enactmentengine";
     private static final String TRAVEL_AGENCY = "travelagency";
 
     ChoreographySpec ChoreographySpec; // input

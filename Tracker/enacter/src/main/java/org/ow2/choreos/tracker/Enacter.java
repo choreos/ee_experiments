@@ -12,13 +12,14 @@ import org.ow2.choreos.chors.datamodel.ChoreographySpec;
 import org.ow2.choreos.invoker.Invoker;
 import org.ow2.choreos.invoker.InvokerBuilder;
 import org.ow2.choreos.invoker.InvokerException;
+import org.ow2.choreos.tracker.experiment.ExperimentConfiguration;
 
 public class Enacter {
 
     private static transient int chorSizeArg;
     private static transient String warFileArg;
-    private static final String EE_URI = "http://localhost:9102/enactmentengine/";
-
+    private static final String EE_URI = ExperimentConfiguration.get("EE_URI");
+    
     private transient final int enacterId;
     private transient int chorSize;
     private transient Choreography choreography;

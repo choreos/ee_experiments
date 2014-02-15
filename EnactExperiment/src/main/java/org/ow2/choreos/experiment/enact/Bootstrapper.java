@@ -11,7 +11,8 @@ import org.ow2.choreos.nodes.datamodel.NodeSpec;
 
 public class Bootstrapper {
 
-    private static final String NPM_HOST = "http://localhost:9100/deploymentmanager";
+    private static final String EE_HOST = "http://localhost:9100/enactmentengine";
+    private static final String CLOUD_ACCOUNT = "MY_AWS_ACCOUNT";
 
     private int vmsQuantity; // how many VMs we will use
     private Report report;
@@ -56,7 +57,7 @@ public class Bootstrapper {
                 public void run() {
 
                     long t0 = System.currentTimeMillis();
-                    NodePoolManager npm = new NodesClient(NPM_HOST);
+                    NodePoolManager npm = new NodesClient(EE_HOST, CLOUD_ACCOUNT);
                     NodeSpec nodeSpec = new NodeSpec();
                     CloudNode vm = null;
                     boolean created = false;

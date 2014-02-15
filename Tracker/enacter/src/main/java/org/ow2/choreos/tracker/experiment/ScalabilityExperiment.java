@@ -31,19 +31,19 @@ public class ScalabilityExperiment {
 //    public static final int[] VMS_LIMITS = new int[] { 10, 30, 50, 70, 90 };
     
     public static final int NUM_EXECUTIONS = 2;
-    public static final int[] CHORS_QUANTITIES = new int[] { 1 };
-    public static final int[] CHORS_SIZES = new int[] { 5 };
-    public static final int[] VMS_LIMITS = new int[] { 10 };
+    public static final int[] CHORS_QUANTITIES = new int[] { 1, 1 };
+    public static final int[] CHORS_SIZES = new int[] { 5, 10 };
+    public static final int[] VMS_LIMITS = new int[] { 5, 5 };
 
     private static final int TIME_TO_WAIT_EE_START_MILLISEC = 1 * 60 * 1000;
-     private static final String EE_FOLDER =
-     "/home/leonardo/workspaces/choreos/enactment_engine";
-//    private static final String CHOREOS_MIDDLEWARE_FOLDER = "/home/ubuntu/choreos_middleware";
+    private static final String EE_URI = ExperimentConfiguration.get("EE_URI");
+    private static final String EE_FOLDER = ExperimentConfiguration.get("EE_FOLDER");
+    private static final String CLOUD_ACCOUNT = ExperimentConfiguration.get("CLOUD_ACCOUNT");
 
     private static Logger logger = Logger.getLogger(ScalabilityExperiment.class);
 
     private List<ExperimentDefinition> definitions;
-    private OSCommand dmCommand, cdCommand;
+    private OSCommand eeCommand;
     private ExperimentDefinition currentDefinition;
 
     public static void main(String[] args) {
@@ -89,8 +89,8 @@ public class ScalabilityExperiment {
         logger.info("Starting EE...");
         String mvnExecCom = "mvn exec:java -o";
         try {
-            dmCommand = new OSCommand(mvnExecCom, EE_FOLDER + "/EnactmentEngine");
-            dmCommand.executeAssync();
+            eeCommand = new OSCommand(mvnExecCom, EE_FOLDER + "/EnactmentEngine");
+            eeCommand.executeAssync();
         } catch (CommandLineException e) {
             logger.error("Could not start EE");
         }
@@ -123,10 +123,9 @@ public class ScalabilityExperiment {
     }
 
     private void configureEE() {
-        String host = "http://0.0.0.0:9100/deploymentmanager";
-        WebClient client = WebClient.create(host);
+        WebClient client = WebClient.create(EE_URI);
         client.type(MediaType.TEXT_PLAIN);
-        client.path("nodes").path("vm_limit");
+        client.path(CLOUD_ACCOUNT).path("nodes").path("vm_limit");
         String vmLimit = Integer.toString(currentDefinition.getVmLimit());
         client.put(vmLimit);
         logger.info("EE configured");
@@ -146,8 +145,7 @@ public class ScalabilityExperiment {
     }
 
     private void stopEE() {
-        dmCommand.killProcess();
-        cdCommand.killProcess();
+        eeCommand.killProcess();
         logger.info("EE killed");
     }
 
@@ -165,9 +163,8 @@ public class ScalabilityExperiment {
     private class EEPingTask implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
-            String host = "http://0.0.0.0:9100/deploymentmanager";
-            WebClient client = WebClient.create(host);
-            client.path("nodes").path("41");
+            WebClient client = WebClient.create(EE_URI);
+            client.path(CLOUD_ACCOUNT).path("nodes").path("41");
             Response response = client.get();
             return response.getStatus();
         }
@@ -193,8 +190,7 @@ public class ScalabilityExperiment {
     private class CleanAmazonTask implements Callable<Void> {
         @Override
         public Void call() throws Exception {
-            String host = "http://0.0.0.0:9100/deploymentmanager";
-            NodePoolManager npm = new NodesClient(host);
+            NodePoolManager npm = new NodesClient(EE_URI, CLOUD_ACCOUNT);
             npm.destroyNodes();
             return null;
         }
