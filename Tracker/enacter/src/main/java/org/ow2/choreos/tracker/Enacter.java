@@ -4,8 +4,8 @@ import java.net.MalformedURLException;
 import java.util.concurrent.Callable;
 
 import org.ow2.choreos.chors.ChoreographyNotFoundException;
+import org.ow2.choreos.chors.DeploymentException;
 import org.ow2.choreos.chors.EnactmentEngine;
-import org.ow2.choreos.chors.EnactmentException;
 import org.ow2.choreos.chors.client.EEClient;
 import org.ow2.choreos.chors.datamodel.Choreography;
 import org.ow2.choreos.chors.datamodel.ChoreographySpec;
@@ -24,7 +24,7 @@ public class Enacter {
     private transient int chorSize;
     private transient Choreography choreography;
 
-    public static void main(final String[] args) throws EnactmentException, ChoreographyNotFoundException,
+    public static void main(final String[] args) throws DeploymentException, ChoreographyNotFoundException,
             IllegalArgumentException, MalformedURLException {
         readArgs(args);
         final Enacter enacter = new Enacter(1);
@@ -66,7 +66,7 @@ public class Enacter {
         return chorSize;
     }
 
-    public void enact(final String warFile, final int chorSize) throws EnactmentException,
+    public void enact(final String warFile, final int chorSize) throws DeploymentException,
             ChoreographyNotFoundException, MalformedURLException {
         verifyChoreographySize(chorSize);
         ChorSpecCreator.setWarFile(warFile);
@@ -75,17 +75,17 @@ public class Enacter {
         setLastServiceId();
     }
 
-    private Choreography createChoreography() throws EnactmentException, ChoreographyNotFoundException {
+    private Choreography createChoreography() throws DeploymentException, ChoreographyNotFoundException {
         final ChorSpecCreator chorSpecCreator = new ChorSpecCreator();
         final ChoreographySpec chorSpec = chorSpecCreator.create(chorSize);
         return deployChoreography(chorSpec);
     }
 
-    private Choreography deployChoreography(final ChoreographySpec chorSpec) throws EnactmentException,
+    private Choreography deployChoreography(final ChoreographySpec chorSpec) throws DeploymentException,
             ChoreographyNotFoundException {
         final EnactmentEngine deployer = new EEClient(EE_URI);
         final String chorId = deployer.createChoreography(chorSpec);
-        return deployer.enactChoreography(chorId);
+        return deployer.deployChoreography(chorId);
     }
 
     /*
