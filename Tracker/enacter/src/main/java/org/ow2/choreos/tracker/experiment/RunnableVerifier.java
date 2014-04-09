@@ -95,6 +95,7 @@ class RunnableVerifier implements Runnable {
         @Override
         public Void call() throws Exception {
             WSDLChecker checker = new WSDLChecker(wsdl);
+            logger.info("Verifying wsdl " + wsdl);
             if (checker.check()) {
                 servicesWorking.incrementAndGet();
                 logger.info("Tracker OK: " + wsdl);
