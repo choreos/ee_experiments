@@ -30,10 +30,10 @@ public class ScalabilityExperiment {
 //    public static final int[] CHORS_SIZES = new int[] { 200, 600, 1000, 1400, 1800 };
 //    public static final int[] VMS_LIMITS = new int[] { 10, 30, 50, 70, 90 };
     
-    public static final int NUM_EXECUTIONS = 2;
-    public static final int[] CHORS_QUANTITIES = new int[] { 1, 1 };
-    public static final int[] CHORS_SIZES = new int[] { 5, 10 };
-    public static final int[] VMS_LIMITS = new int[] { 5, 5 };
+    public static final int NUM_EXECUTIONS = 1;
+    public static final int[] CHORS_QUANTITIES = new int[] { 20 };
+    public static final int[] CHORS_SIZES = new int[] { 20 };
+    public static final int[] VMS_LIMITS = new int[] { 90 };
 
     private static final int TIME_TO_WAIT_EE_START_MILLISEC = 1 * 60 * 1000;
     private static final String EE_URI = ExperimentConfiguration.get("EE_URI");

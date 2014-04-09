@@ -62,7 +62,7 @@ class RunnableVerifier implements Runnable {
         int NUM_THREADS = 200 / chorsQty;
         ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
         Choreography chor = enacter.getChoreography();
-        int len = chor.getServices().size();
+        int len = chor.getDeployableServices().size();
         logger.info("Verifying " + len + " services in enacter " + enacter.getId());
         servicesWorking.set(0);
         for (DeployableService svc : chor.getDeployableServices()) {
@@ -92,8 +92,9 @@ class RunnableVerifier implements Runnable {
         public Void call() throws Exception {
             WSDLChecker checker = new WSDLChecker(wsdl);
             if (checker.check()) {
-                servicesWorking.incrementAndGet();
+                int count = servicesWorking.incrementAndGet();
                 logger.info("Tracker OK: " + wsdl);
+                logger.info(count + " trackers OK");
             } else {
                 logger.error("Tracker not accessible (enacter " + enacter.getId() + "): " + wsdl);
             }
