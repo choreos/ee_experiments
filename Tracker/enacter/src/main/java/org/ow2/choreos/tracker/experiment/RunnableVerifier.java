@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
@@ -71,7 +72,8 @@ class RunnableVerifier implements Runnable {
             executor.submit(task);
         }
         logger.info("Waiting for WSDL verifiers");
-        Concurrency.waitExecutor(executor, Experiment.VERIFY_TIMEOUT, "Service per service verification did not work properly.");
+        Concurrency.waitExecutor(executor, Experiment.VERIFY_TIMEOUT, TimeUnit.MINUTES, logger,
+                "Service per service verification did not work properly.");
         logger.info("Waiting no more for WSDL verifiers");
     }
 
@@ -94,9 +96,8 @@ class RunnableVerifier implements Runnable {
         public Void call() throws Exception {
             WSDLChecker checker = new WSDLChecker(wsdl);
             if (checker.check()) {
-                int count = servicesWorking.incrementAndGet();
+                servicesWorking.incrementAndGet();
                 logger.info("Tracker OK: " + wsdl);
-                logger.info(count + " trackers OK");
             } else {
                 logger.error("Tracker not accessible (enacter " + enacter.getId() + "): " + wsdl);
             }
