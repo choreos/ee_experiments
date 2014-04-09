@@ -98,7 +98,9 @@ public class Experiment {
             verifiers.add(verifier);
             executor.submit(verifier);
         }
+        logger.info("Waiting for enacters verifiers");
         Concurrency.waitExecutor(executor, VERIFY_TIMEOUT, TimeUnit.MINUTES, logger, "Could not properly verify all the chors");
+        logger.info("Waiting no more for enacters verifiers");
         long tf = System.nanoTime();
         report.setCheckTotalTime(tf - t0);
     }

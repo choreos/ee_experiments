@@ -70,7 +70,9 @@ class RunnableVerifier implements Runnable {
             VerifierTask task = new VerifierTask(wsdl);
             executor.submit(task);
         }
+        logger.info("Waiting for WSDL verifiers");
         Concurrency.waitExecutor(executor, Experiment.VERIFY_TIMEOUT, "Service per service verification did not work properly.");
+        logger.info("Waiting no more for WSDL verifiers");
     }
 
     private String getWsdl(Service svc) {
