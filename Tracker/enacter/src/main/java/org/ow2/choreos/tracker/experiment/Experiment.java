@@ -24,7 +24,6 @@ public class Experiment {
 
     public static final int ENACTMENT_TIMEOUT = 50;
     public static final int VERIFY_CHORS_TIMEOUT = 5;
-    public static final int VERIFY_WSDLS_TIMEOUT = 10;
     
     private int run, chorsQty, chorsSize, vmLimit;
     private Report report;
@@ -114,8 +113,6 @@ public class Experiment {
     }
     
     private void verifyWSDLs() {
-        
-        ExecutorService executor = Executors.newFixedThreadPool(chorsQty);
         wsdlVerifiers = new HashMap<Integer, WSDLsVerifier>();
         long t0 = System.nanoTime();
         for (RunnableEnacter enacter : enacters) {
@@ -123,13 +120,9 @@ public class Experiment {
             if (!chorVerifier.ok) {
                 WSDLsVerifier verifier = new WSDLsVerifier(enacter.enacter, chorsQty);
                 wsdlVerifiers.put(enacter.enacter.getId(), verifier);
-                executor.submit(verifier);
+                verifier.run();
             }
         }
-        
-        logger.info("Waiting for WSDLs verifiers");
-        Concurrency.waitExecutor(executor, VERIFY_WSDLS_TIMEOUT, TimeUnit.MINUTES, logger, "Could not properly verify all the chors");
-        logger.info("Waiting no more for WSDLs verifiers");
         long tf = System.nanoTime();
         report.setCheckTotalTime(tf - t0);
     }

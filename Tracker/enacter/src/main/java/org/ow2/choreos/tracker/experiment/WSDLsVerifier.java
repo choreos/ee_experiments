@@ -16,8 +16,9 @@ import org.ow2.choreos.utils.Concurrency;
 public class WSDLsVerifier implements Runnable {
     
     private static Logger logger = Logger.getLogger(ChorVerifier.class);
-
+    
     private static final int MAX_THREADS = 200;
+    public static final int VERIFY_WSDLS_TIMEOUT = 10;
 
     private Enacter enacter;
     private int chorsQty;
@@ -48,7 +49,7 @@ public class WSDLsVerifier implements Runnable {
             executor.submit(task);
         }
         logger.info("Waiting for WSDL verifiers");
-        Concurrency.waitExecutor(executor, Experiment.VERIFY_WSDLS_TIMEOUT, TimeUnit.MINUTES, logger,
+        Concurrency.waitExecutor(executor, VERIFY_WSDLS_TIMEOUT, TimeUnit.MINUTES, logger,
                 "Service per service verification did not work properly.");
         logger.info("Waiting no more for WSDL verifiers");
         long tf = System.nanoTime();
