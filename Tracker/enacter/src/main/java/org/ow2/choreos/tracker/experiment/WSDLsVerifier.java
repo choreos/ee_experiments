@@ -1,6 +1,5 @@
 package org.ow2.choreos.tracker.experiment;
 
-import java.net.MalformedURLException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,67 +13,46 @@ import org.ow2.choreos.services.datamodel.Service;
 import org.ow2.choreos.tracker.Enacter;
 import org.ow2.choreos.utils.Concurrency;
 
-class RunnableVerifier implements Runnable {
-
-    Enacter enacter;
-    int chorsQty, chorsSize;
-    Report report;
-    boolean ok = false;
-    AtomicInteger servicesWorking = new AtomicInteger();
+public class WSDLsVerifier implements Runnable {
     
-    private static Logger logger = Logger.getLogger(RunnableVerifier.class);
+    private static Logger logger = Logger.getLogger(ChorVerifier.class);
 
-    RunnableVerifier(Enacter enacter, Report report, int chorsQty, int chorsSize) {
+    private static final int MAX_THREADS = 200;
+
+    private Enacter enacter;
+    private int chorsQty;
+    
+    // output
+    AtomicInteger servicesWorking = new AtomicInteger();
+    long time;
+
+    public WSDLsVerifier(Enacter enacter, int chorsQty) {
         this.enacter = enacter;
-        this.report = report;
         this.chorsQty = chorsQty;
-        this.chorsSize = chorsSize;
     }
 
+    /**
+     * returns the amount of accessible WSDLs
+     */
     @Override
     public void run() {
-        logger.info("Verifying Enacter#" + enacter.getId());
-        DeployableService tracker0 = enacter.getChoreography().getMapOfDeployableServicesBySpecNames().get("tracker0");
-        logger.info("Tracker0 of enacter " + enacter.getId() + ":" + tracker0.getUris());
-        try {
-            long t0 = System.nanoTime();
-            ok = enacter.verifyAnswer();
-            long tf = System.nanoTime();
-            report.addCheckTime(tf - t0);
-            if (ok) {
-                int all = chorsSize;
-                logger.info("All " + all + " services working on enacter " + enacter.getId());
-                servicesWorking.set(all);
-            } else {
-                int deployedSize = enacter.getChoreography().getDeployableServices().size();
-                if (deployedSize > 0)
-                    verifyServicePerService();
-                else
-                    logger.warn("No services deployed at " + enacter.getId());
-            }
-        } catch (MalformedURLException e) {
-            logger.error("Ops, this problem should not occur with Enacter#" + enacter.getId());
-            ok = false;
-        }
-        logger.info("Enacter#" + enacter.getId() + " ok: " + ok);
-    }
-
-    private void verifyServicePerService() {
-        int NUM_THREADS = 200 / chorsQty;
+        long t0 = System.nanoTime();
+        int NUM_THREADS = MAX_THREADS / chorsQty;
         ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
         Choreography chor = enacter.getChoreography();
         int len = chor.getDeployableServices().size();
         logger.info("Verifying " + len + " services in enacter " + enacter.getId());
-        servicesWorking.set(0);
         for (DeployableService svc : chor.getDeployableServices()) {
             String wsdl = getWsdl(svc);
             VerifierTask task = new VerifierTask(wsdl);
             executor.submit(task);
         }
         logger.info("Waiting for WSDL verifiers");
-        Concurrency.waitExecutor(executor, Experiment.VERIFY_TIMEOUT, TimeUnit.MINUTES, logger,
+        Concurrency.waitExecutor(executor, Experiment.VERIFY_WSDLS_TIMEOUT, TimeUnit.MINUTES, logger,
                 "Service per service verification did not work properly.");
         logger.info("Waiting no more for WSDL verifiers");
+        long tf = System.nanoTime();
+        time = tf - t0;
     }
 
     private String getWsdl(Service svc) {
@@ -88,7 +66,6 @@ class RunnableVerifier implements Runnable {
         String wsdl;
         
         public VerifierTask(String wsdl) {
-            super();
             this.wsdl = wsdl;
         }
 
@@ -105,12 +82,6 @@ class RunnableVerifier implements Runnable {
             return null;
         }
         
-    }
-    
-    public static void main(String[] args) {
-        String wsdl = "http://54.242.118.223:8080/7e8f190b-20da-49f5-a11f-dc3986baabc9/white?wsdl";
-        WSDLChecker checker = new WSDLChecker(wsdl);
-        System.out.println(checker.check());
     }
 
 }
