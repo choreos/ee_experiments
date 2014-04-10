@@ -119,9 +119,12 @@ public class Experiment {
         wsdlVerifiers = new HashMap<Integer, WSDLsVerifier>();
         long t0 = System.nanoTime();
         for (RunnableEnacter enacter : enacters) {
-            WSDLsVerifier verifier = new WSDLsVerifier(enacter.enacter, chorsQty);
-            wsdlVerifiers.put(enacter.enacter.getId(), verifier);
-            executor.submit(verifier);
+            ChorVerifier chorVerifier = chorVerifiers.get(enacter.enacter.getId());
+            if (!chorVerifier.ok) {
+                WSDLsVerifier verifier = new WSDLsVerifier(enacter.enacter, chorsQty);
+                wsdlVerifiers.put(enacter.enacter.getId(), verifier);
+                executor.submit(verifier);
+            }
         }
         
         logger.info("Waiting for WSDLs verifiers");
