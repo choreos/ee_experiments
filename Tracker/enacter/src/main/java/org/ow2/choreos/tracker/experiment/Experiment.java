@@ -118,7 +118,7 @@ public class Experiment {
         for (RunnableEnacter enacter : enacters) {
             ChorVerifier chorVerifier = chorVerifiers.get(enacter.enacter.getId());
             if (!chorVerifier.ok) {
-                WSDLsVerifier verifier = new WSDLsVerifier(enacter.enacter);
+                WSDLsVerifier verifier = new WSDLsVerifier(enacter.enacter, chorsSize);
                 wsdlVerifiers.put(enacter.enacter.getId(), verifier);
                 verifier.run();
             }
