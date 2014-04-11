@@ -44,10 +44,12 @@ public class WSDLsVerifier implements Runnable {
         int len = chor.getDeployableServices().size();
         logger.info("Verifying " + len + " services in enacter " + enacter.getId());
         for (DeployableService svc : chor.getDeployableServices()) {
-            String wsdl = getWsdl(svc);
-            CheckerTask task = new CheckerTask(wsdl);
-            Future<?> future = executor.submit(task);
-            futures.add(future);
+            if (svc.getUris() != null && !svc.getUris().isEmpty()) {
+                String wsdl = getWsdl(svc);
+                CheckerTask task = new CheckerTask(wsdl);
+                Future<?> future = executor.submit(task);
+                futures.add(future);
+            }
         }
         
         logger.info("Waiting for WSDLs verifiers of enacter " + enacter.getId());
