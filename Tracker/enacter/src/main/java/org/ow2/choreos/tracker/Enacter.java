@@ -126,7 +126,7 @@ public class Enacter {
 
     private class VerifyTask implements Callable<Boolean> {
         @Override
-        public Boolean call() throws MalformedURLException {
+        public Boolean call() throws Exception {
             final Tracker firstTracker = getTracker(0);
             final String answer = firstTracker.getPathIds();
             final ChorProperties chorProps = new ChorProperties();
