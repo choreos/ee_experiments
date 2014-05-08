@@ -2,7 +2,6 @@ package org.ow2.choreos.experiments.travelagency.client;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
@@ -15,51 +14,63 @@ import javax.xml.ws.WebServiceFeature;
  * version: 2.1
  * 
  */
-@WebServiceClient(name = "TravelAgencyServiceService", targetNamespace = "http://choreos.ow2.org/", wsdlLocation = TravelAgencyServiceService.TRAVELAGENCYSERVICESERVICE_WSDL_LOCATION)
+@WebServiceClient(name = "TravelAgencyServiceService", targetNamespace = "http://choreos.ow2.org/")
 public class TravelAgencyServiceService extends Service {
 
-    static final String TRAVELAGENCYSERVICESERVICE_WSDL_LOCATION = "http://10.0.0.16:8080/69c4e58b-34db-4b07-a44c-e325830b171f/travelagency?wsdl";
-    private final static Logger logger = Logger.getLogger(TravelAgencyServiceService.class.getName());
+	public static String TRAVELAGENCYSERVICESERVICE_WSDL_LOCATION = "";
 
-    static {
-	URL url = null;
-	try {
-	    URL baseUrl;
-	    baseUrl = TravelAgencyServiceService.class.getResource(".");
-	    url = new URL(baseUrl, TRAVELAGENCYSERVICESERVICE_WSDL_LOCATION);
-	} catch (MalformedURLException e) {
-	    logger.warning("Failed to create URL for the wsdl Location: 'http://10.0.0.16:8080/69c4e58b-34db-4b07-a44c-e325830b171f/travelagency?wsdl', retrying as a local file");
-	    logger.warning(e.getMessage());
+	public TravelAgencyServiceService(URL wsdlLocation, QName serviceName) {
+		super(wsdlLocation, serviceName);
 	}
-    }
 
-    public TravelAgencyServiceService(URL wsdlLocation, QName serviceName) {
-	super(wsdlLocation, serviceName);
-    }
+	/**
+	 * 
+	 * @return returns TravelAgencyService
+	 */
+	@WebEndpoint(name = "TravelAgencyServicePort")
+	public TravelAgencyService getTravelAgencyServicePort() {
+		return super.getPort(new QName("http://choreos.ow2.org/",
+				"TravelAgencyServicePort"), TravelAgencyService.class);
+	}
 
-    /**
-     * 
-     * @return returns TravelAgencyService
-     */
-    @WebEndpoint(name = "TravelAgencyServicePort")
-    public TravelAgencyService getTravelAgencyServicePort() {
-	return super
-		.getPort(new QName("http://choreos.ow2.org/", "TravelAgencyServicePort"), TravelAgencyService.class);
-    }
+	/**
+	 * 
+	 * @param features
+	 *            A list of {@link javax.xml.ws.WebServiceFeature} to configure
+	 *            on the proxy. Supported features not in the
+	 *            <code>features</code> parameter will have their default
+	 *            values.
+	 * @return returns TravelAgencyService
+	 */
+	@WebEndpoint(name = "TravelAgencyServicePort")
+	public TravelAgencyService getTravelAgencyServicePort(
+			WebServiceFeature... features) {
+		return super
+				.getPort(new QName("http://choreos.ow2.org/",
+						"TravelAgencyServicePort"), TravelAgencyService.class,
+						features);
+	}
+	
+	public static void main(String[] args) {
+		String travelAgencyWsdlLocation = "http://54.234.87.174:8080/7f5dfa8f-3c2f-46af-bae0-d54cf38b781c/travelagency?wsdl";
 
-    /**
-     * 
-     * @param features
-     *            A list of {@link javax.xml.ws.WebServiceFeature} to configure
-     *            on the proxy. Supported features not in the
-     *            <code>features</code> parameter will have their default
-     *            values.
-     * @return returns TravelAgencyService
-     */
-    @WebEndpoint(name = "TravelAgencyServicePort")
-    public TravelAgencyService getTravelAgencyServicePort(WebServiceFeature... features) {
-	return super.getPort(new QName("http://choreos.ow2.org/", "TravelAgencyServicePort"),
-		TravelAgencyService.class, features);
-    }
+		String namespace = "http://choreos.ow2.org/";
+		String local = "TravelAgencyServiceService";
+
+		QName travelAgencyNamespace = new QName(namespace, local);
+		
+		TravelAgencyServiceService.TRAVELAGENCYSERVICESERVICE_WSDL_LOCATION = travelAgencyWsdlLocation;
+		TravelAgencyServiceService travel = null;
+		try {
+			travel = new TravelAgencyServiceService(
+					new URL(travelAgencyWsdlLocation), travelAgencyNamespace);
+			TravelAgencyService wsClient = travel.getTravelAgencyServicePort();
+			
+			System.out.println(wsClient.buyTrip());
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+
+	}
 
 }
