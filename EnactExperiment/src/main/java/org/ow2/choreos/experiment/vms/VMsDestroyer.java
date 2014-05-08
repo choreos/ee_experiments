@@ -6,8 +6,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
-import org.ow2.choreos.deployment.nodes.cloudprovider.CloudProvider;
-import org.ow2.choreos.deployment.nodes.cloudprovider.CloudProviderFactory;
+import org.ow2.choreos.ee.config.CloudConfiguration;
+import org.ow2.choreos.ee.nodes.cloudprovider.CloudProvider;
+import org.ow2.choreos.ee.nodes.cloudprovider.CloudProviderFactory;
 import org.ow2.choreos.nodes.NodeNotDestroyed;
 import org.ow2.choreos.nodes.NodeNotFoundException;
 import org.ow2.choreos.nodes.datamodel.CloudNode;
@@ -17,13 +18,14 @@ public class VMsDestroyer {
 
     private static final int TIMEOUT = 2; // minutes
 
+    private CloudConfiguration cloudAccount = CloudConfiguration.getCloudConfigurationInstance();
     private CloudProvider cp;
     private AtomicInteger counter = new AtomicInteger();
 
     private Logger logger = Logger.getLogger(VMsDestroyer.class);
 
     public VMsDestroyer(String cpType) {
-        this.cp = CloudProviderFactory.getFactoryInstance().getCloudProviderInstance(cpType);
+        this.cp = CloudProviderFactory.getFactoryInstance().getCloudProviderInstance(cloudAccount);
     }
 
     public void destroyAll() {

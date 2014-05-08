@@ -2,7 +2,9 @@ package org.ow2.choreos.tracker.experiment;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +14,7 @@ import org.ow2.choreos.tracker.Enacter;
 import org.ow2.choreos.utils.Concurrency;
 import org.ow2.choreos.utils.LogConfigurator;
 
+
 public class Experiment {
 
     public static final int RUN = Integer.parseInt(ExperimentConfiguration.get("RUN"));
@@ -20,12 +23,13 @@ public class Experiment {
     public static final int CHORS_QTY = Integer.parseInt(ExperimentConfiguration.get("CHORS_QTY"));
 
     public static final int ENACTMENT_TIMEOUT = 50;
-    public static final int VERIFY_TIMEOUT = 15;
+    public static final int VERIFY_CHORS_TIMEOUT = 5;
     
     private int run, chorsQty, chorsSize, vmLimit;
     private Report report;
     private List<RunnableEnacter> enacters;
-    private List<RunnableVerifier> verifiers;
+    private Map<Integer, ChorVerifier> chorVerifiers;
+    private Map<Integer, WSDLsVerifier> wsdlVerifiers;
     
     private static Logger logger = Logger.getLogger(Experiment.class);
 
@@ -57,8 +61,9 @@ public class Experiment {
         long t0_total = System.nanoTime();
 
         enactTrackers();
-        verifyTracker();
-
+        verifyChors();
+        verifyWSDLs();
+        
         long tf_total = System.nanoTime();
         long delta_total = tf_total - t0_total;
         report.setTotalTime(delta_total);
@@ -89,16 +94,35 @@ public class Experiment {
         report.setChorsEnactmentTotalTime(tf - t0);
     }
     
-    private void verifyTracker() {
+    private void verifyChors() {
+
         ExecutorService executor = Executors.newFixedThreadPool(chorsQty);
-        verifiers = new ArrayList<RunnableVerifier>();
+        chorVerifiers = new HashMap<Integer, ChorVerifier>();
         long t0 = System.nanoTime();
         for (RunnableEnacter enacter : enacters) {
-            RunnableVerifier verifier = new RunnableVerifier(enacter.enacter, report, chorsQty, chorsSize);
-            verifiers.add(verifier);
+            ChorVerifier verifier = new ChorVerifier(enacter.enacter);
+            chorVerifiers.put(enacter.enacter.getId(), verifier);
             executor.submit(verifier);
         }
-        Concurrency.waitExecutor(executor, VERIFY_TIMEOUT, TimeUnit.MINUTES, logger, "Could not properly verify all the chors");
+        
+        logger.info("Waiting for enacters verifiers");
+        Concurrency.waitExecutor(executor, VERIFY_CHORS_TIMEOUT, TimeUnit.MINUTES, logger, "Could not properly verify all the chors");
+        logger.info("Waiting no more for enacters verifiers");
+        long tf = System.nanoTime();
+        report.setCheckTotalTime(tf - t0);
+    }
+    
+    private void verifyWSDLs() {
+        wsdlVerifiers = new HashMap<Integer, WSDLsVerifier>();
+        long t0 = System.nanoTime();
+        for (RunnableEnacter enacter : enacters) {
+            ChorVerifier chorVerifier = chorVerifiers.get(enacter.enacter.getId());
+            if (!chorVerifier.ok) {
+                WSDLsVerifier verifier = new WSDLsVerifier(enacter.enacter, chorsSize);
+                wsdlVerifiers.put(enacter.enacter.getId(), verifier);
+                verifier.run();
+            }
+        }
         long tf = System.nanoTime();
         report.setCheckTotalTime(tf - t0);
     }
@@ -106,11 +130,18 @@ public class Experiment {
     private void finishReport() {
         int chorsWorking = 0;
         int servicesWorking = 0;
-        for (RunnableVerifier verifier : verifiers) {
-            if (verifier.ok) {
+        for (int id : chorVerifiers.keySet()) {
+            ChorVerifier chorVerifier = chorVerifiers.get(id);
+            long checkTime = chorVerifier.time;
+            if (chorVerifier.ok) {
                 chorsWorking++;
+                servicesWorking += chorsSize;
+            } else {
+                WSDLsVerifier wsdlsVerifier = wsdlVerifiers.get(id);
+                servicesWorking += wsdlsVerifier.servicesWorking.get();
+                checkTime += wsdlsVerifier.time;
             }
-            servicesWorking += verifier.servicesWorking.get();
+            report.addCheckTime(checkTime);
         }
         report.setChorsWorking(chorsWorking);
         report.setServicesWorking(servicesWorking);

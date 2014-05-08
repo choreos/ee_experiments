@@ -1,3 +1,8 @@
+
+EE_URI=http://0.0.0.0:9100/enactmentengine
+EE_FOLDER=/home/ubuntu/enactment_engine
+CLOUD_ACCOUNT=MY_AWS_ACCOUNT
+
 RUN=1
 CHORS_QTY=4
 CHORS_SIZE=10

@@ -4,7 +4,7 @@ import java.net.MalformedURLException;
 
 import org.apache.log4j.Logger;
 import org.ow2.choreos.chors.ChoreographyNotFoundException;
-import org.ow2.choreos.chors.EnactmentException;
+import org.ow2.choreos.chors.DeploymentException;
 import org.ow2.choreos.tracker.Enacter;
 
 class RunnableEnacter implements Runnable {
@@ -35,7 +35,7 @@ class RunnableEnacter implements Runnable {
             ok = true;
         } catch (MalformedURLException e) {
             failed();
-        } catch (EnactmentException e) {
+        } catch (DeploymentException e) {
             failed();
         } catch (ChoreographyNotFoundException e) {
             failed();

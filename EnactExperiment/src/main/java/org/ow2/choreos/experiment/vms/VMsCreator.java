@@ -12,16 +12,18 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
-import org.ow2.choreos.deployment.nodes.cloudprovider.CloudProvider;
-import org.ow2.choreos.deployment.nodes.cloudprovider.CloudProviderFactory;
+import org.ow2.choreos.ee.config.CloudConfiguration;
+import org.ow2.choreos.ee.nodes.cloudprovider.CloudProvider;
+import org.ow2.choreos.ee.nodes.cloudprovider.CloudProviderFactory;
 import org.ow2.choreos.nodes.datamodel.CloudNode;
 import org.ow2.choreos.nodes.datamodel.NodeSpec;
 import org.ow2.choreos.utils.Concurrency;
 
 public class VMsCreator {
 
-    private Logger logger = Logger.getLogger(VMsCreator.class);
+    private CloudConfiguration cloudAccount = CloudConfiguration.getCloudConfigurationInstance();
     private AtomicInteger counter = new AtomicInteger();
+    private Logger logger = Logger.getLogger(VMsCreator.class);
 
     private static final int TIMEOUT = 60; // minutes
 
@@ -35,7 +37,7 @@ public class VMsCreator {
      */
     public List<Long> createVMs(int N, String cpType) {
 
-        CloudProvider cp = CloudProviderFactory.getFactoryInstance().getCloudProviderInstance(cpType);
+        CloudProvider cp = CloudProviderFactory.getFactoryInstance().getCloudProviderInstance(cloudAccount);
         ExecutorService executor = Executors.newFixedThreadPool(N);
         List<Future<Long>> futures = new ArrayList<Future<Long>>();
         for (int i = 0; i < N; i++) {

@@ -1,6 +1,16 @@
-*.class
-
-# Package Files #
+in/
 *.jar
-*.war
-*.ear
+*.log
+*.log.*
+*.swp
+.classpath
+*/.metadata
+.metadata/*
+.pmd
+.project
+.settings/
+target/
+*~
+.metadata/*
+.project
+.settings/*
