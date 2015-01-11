@@ -1,0 +1,498 @@
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.PatternLayout.
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.FileAppender.
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.PatternLayout.
+log4j:WARN No such property [maxFileSize] in org.apache.log4j.FileAppender.
+[INFO 14:57:43 RESTServer] Enactment Engine has started [http://0.0.0.0:9100/enactmentengine/]
+[INFO 14:57:48 EEImpl] Choreography 1 created.
+[INFO 14:57:48 ChoreographyEnacter] Starting enactment; chorId= 1
+[INFO 14:57:48 NewDeploymentPreparing] Request to configure nodes; creating services; setting up Chef; for chor 1
+[DEBUG 14:57:50 JCloudsCloudProvider] Creating node...
+[DEBUG 14:57:52 JCloudsCloudProvider] Creating node...
+[INFO 14:57:54 JCloudsCloudProvider] Creating Template with image ID: us-east-1/ami-3337675a; hardware ID: m1.small
+[INFO 14:57:54 JCloudsCloudProvider] Creating Template with image ID: us-east-1/ami-3337675a; hardware ID: m1.small
+[DEBUG 14:58:43 JCloudsCloudProvider$CreateNodeTask] Node [id=us-east-1/i-58645309, ip=54.82.13.79] created
+[DEBUG 14:58:48 SshWaiter$SshWaiterCallable] Trying SSH into 54.82.13.79 again in 5 seconds
+[DEBUG 14:58:55 SshWaiter$SshWaiterCallable] Trying SSH into 54.82.13.79 again in 5 seconds
+[INFO 14:59:05 NodeBootstrapper] Bootstrapping 54.82.13.79
+[DEBUG 14:59:35 JCloudsCloudProvider$CreateNodeTask] Node [id=us-east-1/i-9a6156cb, ip=54.82.246.46] created
+[DEBUG 14:59:35 SshWaiter$SshWaiterCallable] Trying SSH into 54.82.246.46 again in 5 seconds
+[INFO 14:59:42 NodeBootstrapper] Bootstrapping 54.82.246.46
+[INFO 15:00:04 NodeBootstrapper] Bootstrap completed at Node [id=us-east-1/i-58645309, ip=54.82.13.79]
+[INFO 15:00:04 ServiceDeploymentPreparer] Selected nodes to travelagency: [Node [id=us-east-1/i-58645309, ip=54.82.13.79]]
+[INFO 15:00:33 NodeBootstrapper] Bootstrap completed at Node [id=us-east-1/i-9a6156cb, ip=54.82.246.46]
+[INFO 15:00:33 ServiceDeploymentPreparer] Selected nodes to airline: [Node [id=us-east-1/i-9a6156cb, ip=54.82.246.46]]
+[INFO 15:00:38 NewDeploymentPreparing] Nodes are configured to run chef-client on chor 1
+[INFO 15:00:38 NodesUpdater] Going to update nodes of choreography 1
+[DEBUG 15:00:38 NodeUpdater$ChefSoloTask] Updating node us-east-1/i-58645309
+[DEBUG 15:00:38 NodeUpdater$ChefSoloTask] Updating node us-east-1/i-9a6156cb
+[INFO 15:02:18 NodeUpdater$ChefSoloTask] Node Node [id=us-east-1/i-9a6156cb, ip=54.82.246.46] updated
+[INFO 15:02:23 NodeUpdater$ChefSoloTask] Node Node [id=us-east-1/i-58645309, ip=54.82.13.79] updated
+[INFO 15:02:23 ContextCaster] Passing context to deployed services on choreograghy 1
+[DEBUG 15:02:24 GlimpseConsumer] <?xml version="1.0" encoding="UTF-8"?>
+<ComplexEventRuleActionList xmlns="http://labse.isti.cnr.it/glimpse/xml/ComplexEventRule"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://labse.isti.cnr.it/glimpse/xml/ComplexEventRule ./ComplexEventRule.xsd">
+
+<Insert RuleType="drools">
+
+<RuleName>Choreography_1</RuleName>
+<RuleBody>
+import it.cnr.isti.labsedc.glimpse.event.GlimpseBaseEventChoreos;
+import it.cnr.isti.labsedc.glimpse.manager.ResponseDispatcher;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+declare GlimpseBaseEventChoreos
+	@role( event )
+	@timestamp( timeStamp )
+end
+
+declare ResponseTimeEvent
+	@role(event)
+	@expires (2m)
+	value : float
+	ip : String
+	service: String
+	chor: String
+end
+
+declare CpuUserEvent
+	@role(event)
+	@expires (5m)
+	value : float
+	ip : String
+end
+
+declare LoadOneEvent
+	@role(event)
+	@expires (5m)
+	value : float
+	ip : String
+end
+
+declare FreeRamEvent
+	@role(event)
+	@expires (5m)
+	value : float
+	ip : String
+end
+
+declare BytesInEvent
+	@role(event)
+	@expires (5m)
+	value : float
+	ip : String
+end
+
+declare BytesOutEvent
+	@role(event)
+	@expires (5m)
+	value : float
+	ip : String
+end
+
+declare PktsInEvent
+	@role(event)
+	@expires (5m)
+	value : float
+	ip : String
+end
+
+declare PktsOutEvent
+	@role(event)
+	@expires (5m)
+	value : float
+	ip : String
+end
+
+declare DiskBytesWrittenEvent
+	@role(event)
+	@expires (5m)
+	value : float
+	ip : String
+end
+
+declare DiskBytesReadEvent
+	@role(event)
+	@expires (5m)
+	value : float
+	ip : String
+end
+
+declare AddReplica
+	@role(event)
+	@expires( 10m )
+	service : String
+end
+
+declare RemReplica
+	@role(event)
+	@expires ( 6m )
+	ip : String
+end
+
+rule "CpuUser"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.isException == false,
+		this.getEventName == "cpu_user"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	Pattern p = Pattern.compile("Measured: ([0-9.]+)");
+	Matcher m1 = p.matcher((String) $aEvent.getEventData());
+	float f = -1;
+	if (m1.find())
+		f = Float.parseFloat(m1.group(0).split(": ")[1]);
+	insert (new CpuUserEvent(f,$aEvent.getMachineIP()));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getMachineIP() + " " + f);
+end
+
+
+
+rule "LoadOne"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.isException == false,
+		this.getEventName == "load_one"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	Pattern p = Pattern.compile("Measured: ([0-9.]+)");
+	Matcher m1 = p.matcher((String) $aEvent.getEventData());
+	float f = -1;
+	if (m1.find())
+		f = Float.parseFloat(m1.group(0).split(": ")[1]);
+	insert (new LoadOneEvent(f,$aEvent.getMachineIP()));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getMachineIP() + " " + f);
+end
+
+
+
+rule "FreeRam"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.isException == false,
+		this.getEventName == "free_ram"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	Pattern p = Pattern.compile("Measured: ([0-9.]+)");
+	Matcher m1 = p.matcher((String) $aEvent.getEventData());
+	float f = -1;
+	if (m1.find())
+		f = Float.parseFloat(m1.group(0).split(": ")[1]);
+	insert (new FreeRamEvent(f,$aEvent.getMachineIP()));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getMachineIP() + " " + f);
+end
+
+
+
+rule "BytesIn"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.isException == false,
+		this.getEventName == "bytes_in"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	Pattern p = Pattern.compile("Measured: ([0-9.]+)");
+	Matcher m1 = p.matcher((String) $aEvent.getEventData());
+	float f = -1;
+	if (m1.find())
+		f = Float.parseFloat(m1.group(0).split(": ")[1]);
+	insert (new BytesInEvent(f,$aEvent.getMachineIP()));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getMachineIP() + " " + f);
+end
+
+
+
+rule "BytesOut"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.isException == false,
+		this.getEventName == "bytes_out"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	Pattern p = Pattern.compile("Measured: ([0-9.]+)");
+	Matcher m1 = p.matcher((String) $aEvent.getEventData());
+	float f = -1;
+	if (m1.find())
+		f = Float.parseFloat(m1.group(0).split(": ")[1]);
+	insert (new BytesOutEvent(f,$aEvent.getMachineIP()));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getMachineIP() + " " + f);
+end
+
+
+
+rule "PktsIn"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.isException == false,
+		this.getEventName == "pkts_in"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	Pattern p = Pattern.compile("Measured: ([0-9.]+)");
+	Matcher m1 = p.matcher((String) $aEvent.getEventData());
+	float f = -1;
+	if (m1.find())
+		f = Float.parseFloat(m1.group(0).split(": ")[1]);
+	insert (new PktsInEvent(f,$aEvent.getMachineIP()));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getMachineIP() + " " + f);
+end
+
+
+
+rule "PktsOut"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.isException == false,
+		this.getEventName == "pkts_out"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	Pattern p = Pattern.compile("Measured: ([0-9.]+)");
+	Matcher m1 = p.matcher((String) $aEvent.getEventData());
+	float f = -1;
+	if (m1.find())
+		f = Float.parseFloat(m1.group(0).split(": ")[1]);
+	insert (new PktsOutEvent(f,$aEvent.getMachineIP()));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getMachineIP() + " " + f);
+end
+
+
+
+rule "DiskBytesWritten"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.isException == false,
+		this.getEventName == "disk_bytes_written"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	Pattern p = Pattern.compile("Measured: ([0-9.]+)");
+	Matcher m1 = p.matcher((String) $aEvent.getEventData());
+	float f = -1;
+	if (m1.find())
+		f = Float.parseFloat(m1.group(0).split(": ")[1]);
+	insert (new DiskBytesWrittenEvent(f,$aEvent.getMachineIP()));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getMachineIP() + " " + f);
+end
+
+
+
+rule "DiskBytesRead"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.isException == false,
+		this.getEventName == "disk_bytes_read"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	Pattern p = Pattern.compile("Measured: ([0-9.]+)");
+	Matcher m1 = p.matcher((String) $aEvent.getEventData());
+	float f = -1;
+	if (m1.find())
+		f = Float.parseFloat(m1.group(0).split(": ")[1]);
+	insert (new DiskBytesReadEvent(f,$aEvent.getMachineIP()));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getMachineIP() + " " + f);
+end
+
+
+
+
+rule "LowCpuUser"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$ev : CpuUserEvent();
+	$rs : Number(50.0 > doubleValue) from accumulate(
+		CpuUserEvent($ev.ip == ip, $val : value),
+			average($val)
+	);
+	not RemReplica(ip == $ev.ip);
+then
+	insert(new RemReplica($ev.ip));
+	ResponseDispatcher.LogViolation(drools.getRule().getName(),
+		"QoS Drools Rules",
+		"\nSLA QoS violation detected on: " + $ev.ip);
+	ResponseDispatcher.NotifyMeValue(drools.getRule().getName(),
+		"eeConsumer", (String) $ev.ip, "all");
+end
+
+
+rule "ResponseTime_Service_a5b6e7e3-f29f-457d-aa25-7c0ae90fc32a"
+no-loop true
+salience 20
+dialect "mvel"
+
+when
+	$aEvent : GlimpseBaseEventChoreos(
+		this.isConsumed == false,
+		this.getServiceSource == "a5b6e7e3-f29f-457d-aa25-7c0ae90fc32a",
+		this.isException == false,
+		this.getEventName == "response_time"
+	);
+then
+	$aEvent.setConsumed(true);
+	update($aEvent);
+	float meas = Float.parseFloat((String) $aEvent.getEventData());
+	insert (new ResponseTimeEvent(meas,
+		(String) $aEvent.getMachineIP(),
+		(String) $aEvent.getServiceSource(),
+		(String) $aEvent.getChoreographySource())
+	);
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: Resource Metric Aggregator",
+		"\nSLA resource measurement: " + (String) $aEvent.getServiceSource() + " - " + (String) $aEvent.getEventData());
+	retract ($aEvent);
+end
+
+rule "HighResponseTime_Service_a5b6e7e3-f29f-457d-aa25-7c0ae90fc32a"
+no-loop true
+salience 30
+dialect "mvel"
+
+when
+	$ev : ResponseTimeEvent(service == "a5b6e7e3-f29f-457d-aa25-7c0ae90fc32a");
+	Number( $eventSum : doubleValue ) from accumulate(
+		$event : ResponseTimeEvent($ev.service == service, $ev.ip == ip),
+			count($event)
+	);
+	Number( intValue > $eventSum * 0.05 ) from accumulate(
+		$sEvent : ResponseTimeEvent(value > 900.0, $ev.service == service, $ev.ip == ip),
+			count($sEvent)
+	);
+	Number( doubleValue > 90.0 )
+		from accumulate( CpuUserEvent($ev.ip == ip, $val : value),
+			average($val)
+	);
+	not AddReplica(service == $ev.service);
+then
+	insert(new AddReplica($ev.service));
+	ResponseDispatcher.LogViolation(
+		"\nRule name: " + drools.getRule().getName(),
+		"\nFrom: QoS Drools Rules",
+		"\nSLA QoS violation detected on: " + $ev.service);
+	ResponseDispatcher.NotifyMeValue(drools.getRule().getName(),
+		"eeConsumer", (String) $ev.ip, (String) $ev.service);
+end
+
+
+
+
+
+
+
+</RuleBody>
+
+</Insert>
+
+</ComplexEventRuleActionList>
+
+[INFO 15:02:24 GlimpseConsumer] Starting running glimpse consumer for chor 1
+ChorGlimpseConsumer: Creating InitialContext with settings 			[ OK ]
+--------------------------------------------------------------------------------------
+ChorGlimpseConsumer: Creating ConnectionFactory with settings 			[ OK ]
+ChorGlimpseConsumer: Creating TopicConnection 					[ OK ]
+--------------------------------------------------------------------------------------
+ChorGlimpseConsumer: Creating Session 						[ OK ]
+ChorGlimpseConsumer: Connecting to channel 					[ OK ]
+ChorGlimpseConsumer: Create subscriber 						[ OK ]
+ChorGlimpseConsumer: Starting connection 					[ OK ]
+--------------------------------------------------------------------------------------
+ChorGlimpseConsumer: Creating Session 						[ OK ]
+ChorGlimpseConsumer: Looking up for channel 					[ OK ]
+ChorGlimpseConsumer: Creating Publisher 					[ OK ]
+ChorGlimpseConsumer: Creating Message 						[ OK ]
+ChorGlimpseConsumer: Publishing message  					[ OK ]
+--------------------------------------------------------------------------------------
+[INFO 15:02:27 GlimpseConsumer] Glimpse consumer stated!
+[INFO 15:02:27 ChoreographyEnacter] Enactment completed; chorId=1
+

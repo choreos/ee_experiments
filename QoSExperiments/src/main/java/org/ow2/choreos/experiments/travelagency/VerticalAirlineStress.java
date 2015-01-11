@@ -2,7 +2,6 @@ package org.ow2.choreos.experiments.travelagency;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,34 +29,35 @@ import org.ow2.choreos.services.datamodel.DeployableServiceSpec;
 import org.ow2.choreos.services.datamodel.PackageType;
 import org.ow2.choreos.services.datamodel.ServiceType;
 import org.ow2.choreos.services.datamodel.qos.DesiredQoS;
-import org.ow2.choreos.services.datamodel.qos.DesiredQoS.ScalePolicy;
 import org.ow2.choreos.services.datamodel.qos.ResponseTimeMetric;
+import org.ow2.choreos.services.datamodel.qos.DesiredQoS.ScalePolicy;
 import org.ow2.choreos.tests.ModelsForTest;
 
-public class AirlineStress implements Runnable {
+public class VerticalAirlineStress implements Runnable {
 
 	Logger logger = Logger.getLogger("expLogger");
+	
+	private static final long rateVectorEx1[][] = { 
+		{ 600, 10 }, 
+		{ 500, 10 }, 
+		{ 450, 10 }, 
+		{ 400, 15 }, 
+		{ 375, 15 }, 
+		{ 350, 15 }, 
+		{ 300, 15 }, 
+		{ 275, 15 }, 
+		{ 250, 15 },
+		{ 300, 15 }, 
+		{ 350, 15 }, 
+		{ 375, 15 }, 
+		{ 390, 15 }, 
+		{ 400, 20 }, 
+		{ 450, 20 }, 
+		{ 500, 30 }, 
+		{ 600, 30 }, 
+		{ 700, 30 } 
+	};
 
-	// pagina principal PT
-	private static final double rateVectorEx1[][] = { 
-			{ 6348, 5 }, { 6139, 5 }, { 4861, 5 }, { 3910, 5 }, 
-			{ 2638, 5 }, { 1754, 5 }, { 1173, 5 }, { 877 , 5 },
-			{ 913 , 5 }, { 1125, 5 }, { 1761, 5 }, { 2668, 5 }, 
-			{ 4019, 5 }, { 4943, 5 }, { 5191, 5 }, { 5926, 5 }, 
-			{ 2208, 5 }, { 6311, 5 }, { 6633, 5 }, { 6347, 5 },
-			{ 1615, 5 }, { 7069, 5 }, { 6816, 5 }, { 7077, 5 }};
-	
-	
-
-	// Wikipedia: Your First Article EN - 2/9
-//	private static final double rateVectorEx1[][] = { 
-//		{ 19846, 5 }, { 17140, 5 }, { 14692, 5 }, { 14233, 5 }, 
-//		{ 13848, 5 }, { 14441, 5 }, { 13891, 5 }, { 12845, 5 },
-//		{ 11581, 5 }, { 10006, 5 }, { 10150, 5 }, { 9330 , 5 }, 
-//		{ 9008 , 5 }, { 9157 , 5 }, { 9117 , 5 }, { 9383 , 5 }, 
-//		{ 10047, 5 }, { 9935 , 5 }, { 9683 , 5 }, { 10116, 5 },
-//		{ 9554 , 5 }, { 12734, 5 }, { 10163, 5 }, { 8841 , 5 }};
-	
 	private static final int N_TRDS = 200;
 	private static EEClient enactmentEngine;
 
@@ -72,48 +72,37 @@ public class AirlineStress implements Runnable {
 
 	static {
 		enactmentEngine = new EEClient("http://localhost:9100/enactmentengine/");
-
+		
 		ModelsForTest.AIRLINE_WAR = "http://www.ime.usp.br/~tfurtado/downloads/airline.war";
 		ModelsForTest.TRAVEL_AGENCY_WAR = "http://www.ime.usp.br/~tfurtado/downloads/travelagency.war";
+		
+		//ModelsForTest.AIRLINE_WAR = "http://thiagofurtado.com/airline.war";
+		//ModelsForTest.TRAVEL_AGENCY_WAR = "http://thiagofurtado.com/travelagency.war";
 	}
 
-	public AirlineStress() {
+	public VerticalAirlineStress() {
 		pool = Executors.newFixedThreadPool(N_TRDS);
 
-		ResourceImpact airlineResourceImpact = new ResourceImpact();
-		airlineResourceImpact.setCpu(CPUSize.SMALL);
-		airlineResourceImpact.setRAM(RAMSize.MEDIUM);
-		models = new ModelsForTest(ServiceType.SOAP, PackageType.TOMCAT,
-				airlineResourceImpact);
+		ResourceImpact ri = new ResourceImpact();
+		ri.setCpu(CPUSize.SMALL);
+		ri.setRAM(RAMSize.SMALL);
+		models = new ModelsForTest(ServiceType.SOAP, PackageType.TOMCAT, ri);
 		chorSpec = models.getChorSpec();
-
-		ResourceImpact travelagencyResourceImpact = new ResourceImpact();
-		travelagencyResourceImpact.setCpu(CPUSize.MEDIUM); // to prevent tomcat
-															// restart
-
-		((DeployableServiceSpec) chorSpec
-				.getServiceSpecByName(ModelsForTest.TRAVEL_AGENCY))
-				.setResourceImpact(travelagencyResourceImpact);
-
+		
 		Properties resourceParams = new Properties();
-		resourceParams.setProperty("cpu_max", "85.0");
-		resourceParams.setProperty("cpu_min", "15.0");
+		resourceParams.setProperty("cpu_max", "90.0");
+		resourceParams.setProperty("cpu_min", "60.0");
 		chorSpec.setResourceParams(resourceParams);
-
+		
 		DesiredQoS desiredQoS = new DesiredQoS();
-		desiredQoS.setScalePolicy(ScalePolicy.HORIZONTAL);
 		ResponseTimeMetric responseTime = new ResponseTimeMetric();
 		responseTime.setAcceptablePercentage(0.05f);
-		responseTime.setMaxDesiredResponseTime(1000f);
+		responseTime.setMaxDesiredResponseTime(700f);
 		desiredQoS.setResponseTimeMetric(responseTime);
-
-		((DeployableServiceSpec) chorSpec
-				.getServiceSpecByName(ModelsForTest.AIRLINE))
+		
+		((DeployableServiceSpec) chorSpec.getServiceSpecByName("airline"))
 				.setDesiredQoS(desiredQoS);
 
-//		((DeployableServiceSpec) chorSpec
-//				.getServiceSpecByName(ModelsForTest.AIRLINE))
-//				.setNumberOfInstances(2);
 	}
 
 	private void runExperiment() throws InterruptedException, IOException,
@@ -126,8 +115,7 @@ public class AirlineStress implements Runnable {
 				.getDeployableServiceBySpecName(ModelsForTest.TRAVEL_AGENCY))
 				.getInstances().get(0).getNativeUri();
 
-		long TIME_UNIT_IN_MS = 1000 * 60; // 30 for half of minute; 60 for
-											// minute
+		long TIME_UNIT_IN_MS = 1000 * 6 * 1;
 
 		logger.info("Setting up travel agency clients. Total: " + N_TRDS);
 
@@ -136,36 +124,25 @@ public class AirlineStress implements Runnable {
 			clients.add(getNewTravelAgencyClient(travelAgencyWsdlLocation));
 		}
 
-		double totalTime = 0;
-		for (int j = 0; j < rateVectorEx1.length; j++) {
-			totalTime += rateVectorEx1[j][1];
-		}
-
-		System.out.println("Total experiment time: " + totalTime
-				+ ". Press ENTER to start experiment:");
+		System.out.println("Press ENTER to start experiment:");
 		System.in.read();
 		logger.info("Experiment started");
 
 		for (int j = 0; j < rateVectorEx1.length; j++) {
 
-			// Considering 1 hours as 5 minutes. 60/5=12
-			double numberOfRequests = rateVectorEx1[j][0] / 12;
-			
-			// time to execute "numberOfRequests" requests
-			double time = rateVectorEx1[j][1] * TIME_UNIT_IN_MS; // in milliseconds
-			
-			double waitingTimeUntilNextRequest = time / numberOfRequests;
-			
-			
-			double timeCounter = 0;
-			long num = (long) (waitingTimeUntilNextRequest);
+			long rate = rateVectorEx1[j][0];
+			long time = rateVectorEx1[j][1];
 
-			logger.info("Starting loop; rate = " + numberOfRequests + "ms; time = " + time);			
-			while (timeCounter < time) {
-				timeCounter += num;
-				pool.submit(new BuyTripHandler(getClient(), numberOfRequests));
-				Thread.sleep(num);
+			long timeCounter = 0;
+
+			logger.info("Starting loop; rate = " + rate + "ms; time = " + time);
+			while (timeCounter < time * TIME_UNIT_IN_MS) {
+				timeCounter += rate;
+				pool.submit(new BuyTripHandler(getClient()));
+				logger.info("Request sent; sleeping for " + rate);
+				Thread.sleep(rate);
 			}
+			logger.info("Finished loop; rate = " + rate + "ms; time = " + time);
 		}
 
 		logger.info("Experiment finished");
@@ -203,34 +180,27 @@ public class AirlineStress implements Runnable {
 	}
 
 	class BuyTripHandler implements Callable<String> {
+		
 
 		private TravelAgencyService client;
-		private double rate;
 
-		public BuyTripHandler(TravelAgencyService client, double rate) {
+		public BuyTripHandler(TravelAgencyService client) {
 			this.client = client;
-			this.rate = rate;
 		}
 
 		@Override
-		public String call() {
+		public String call() throws Exception {
 			long t = System.currentTimeMillis();
-			String result;
-			try {
-				result = client.buyTrip();
-			} catch (Exception e) {
-				if (e instanceof SocketTimeoutException)
-					System.out.println("Rate: " + rate + "; Timed out");
-				return "timed out";
-			}
+			String result = client.buyTrip();
 			long tf = System.currentTimeMillis() - t;
-			String res = "Rate: " + rate + "; RT " + (tf) + " >> Result = " + result;
-			System.out.println(res);
+			String res = result + "; " + (tf);
+			System.out.println("res + " + res);
 			return res;
 		}
+
 	}
 
 	public static void main(String[] args) {
-		new Thread(new AirlineStress()).start();
+		new Thread(new VerticalAirlineStress()).start();
 	}
 }
